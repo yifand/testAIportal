@@ -309,9 +309,8 @@ export function parseSSEStream(stream, { onMessage, onEnd, onError }) {
  */
 export function stopQAchat(taskId) {
   return instance({
-    url: '/ai/assistant/stop_chat',
+    url: `/ai/assistant/stop_chat/${taskId}`,
     method: 'post',
-    data: { task_id: taskId },
   });
 }
 

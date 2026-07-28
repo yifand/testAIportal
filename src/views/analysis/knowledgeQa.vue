@@ -18,6 +18,7 @@
               <h3>基础知识</h3>
               <div class="question-list">
                 <div v-for="(question, index) in basicKnowledge" :key="index" class="question-item"
+                  :class="{ disabled: isGenerating }"
                   @click="handlePresetQuestion(question)">
                   {{ question }}
                 </div>
@@ -28,6 +29,7 @@
               <h3>平台使用知识</h3>
               <div class="question-list">
                 <div v-for="(question, index) in platformKnowledge" :key="index" class="question-item"
+                  :class="{ disabled: isGenerating }"
                   @click="handlePresetQuestion(question)">
                   {{ question }}
                 </div>
@@ -191,8 +193,6 @@ export default {
       platformKnowledge: [
         '平台相关功能介绍？',
         '平台使用了哪些关键技术？',
-        '平台有哪些实际案例？',
-        '如何创建监测任务？'
       ],
       hisQueryParams: {
         pageNo: 1,
@@ -264,6 +264,7 @@ export default {
       }
     },
     handlePresetQuestion(question) {
+      if (this.isGenerating) return;
       this.inputQuestion = question;
       this.handleSendQuestion();
     },
@@ -481,11 +482,21 @@ export default {
           const newStr = existingItem.allMsg.split('</think>');
           if (newStr && newStr[1] !== undefined) {
             existingItem.content = newStr[1];
-            existingItem.think = newStr[0];
+            if (!existingItem.think) {
+              this.$set(existingItem, 'think', newStr[0]);
+              this.$set(existingItem, 'thinkExpanded', false);
+            } else {
+              existingItem.think = newStr[0];
+            }
             this.resetThinkData(this.messageId);
           } else {
             // 还未到 </think>，全部当作思考内容
-            existingItem.think = existingItem.allMsg;
+            if (!existingItem.think) {
+              this.$set(existingItem, 'think', existingItem.allMsg);
+              this.$set(existingItem, 'thinkExpanded', false);
+            } else {
+              existingItem.think = existingItem.allMsg;
+            }
             existingItem.content = '';
           }
         } else {
@@ -516,6 +527,7 @@ export default {
             time: this.formatTime(new Date()),
             allMsg: res,
             think: '',
+            thinkExpanded: false,
             isStreaming: !isMsgEnd,
             complete: isMsgEnd
           };
@@ -553,6 +565,7 @@ export default {
             time: this.formatTime(new Date()),
             allMsg: res,
             think: newStr[0],
+            thinkExpanded: false,
             isStreaming: !isMsgEnd,
             complete: isMsgEnd
           };

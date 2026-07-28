@@ -18,7 +18,7 @@
               <h3>智能分析</h3>
               <div class="question-list">
                 <div v-for="(question, index) in todayQuestions" :key="index" class="question-item"
-                  @click="handlePresetQuestion(question)">
+                  :class="{ disabled: isGenerating }" @click="handlePresetQuestion(question)">
                   {{ question }}
                 </div>
               </div>
@@ -180,7 +180,8 @@ export default {
       todayQuestions: [
         '当前有多少巡检车？',
         '道路资产情况如何？',
-        '累计工单总数'
+        '累计工单总数',
+        '工单处置'
       ],
 
       hisQueryParams: {
@@ -255,6 +256,7 @@ export default {
     },
 
     handlePresetQuestion(question) {
+      if (this.isGenerating) return;
       this.inputQuestion = question;
       this.handleSendQuestion();
     },

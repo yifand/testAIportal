@@ -119,6 +119,22 @@
   transform: translateX(2px);
 }
 
+.question-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: none;
+  background-color: #f5f7fa;
+  border-left-color: transparent;
+  color: #909399;
+}
+
+.question-item.disabled:hover {
+  background-color: #f5f7fa;
+  border-left-color: transparent;
+  color: #909399;
+  transform: none;
+}
+
 .right-panel {
   flex: 1;
   min-height: 0;

@@ -39,8 +39,7 @@
                         show-overflow-tooltip></el-table-column>
                     <el-table-column prop="roadName" label="道路名" min-width="120"
                         show-overflow-tooltip></el-table-column>
-                    <el-table-column prop="pci" label="路面状况指数" min-width="120" align="center"
-                        show-overflow-tooltip>
+                    <el-table-column prop="pci" label="路面状况指数" min-width="120" align="center" show-overflow-tooltip>
                         <template slot-scope="scope">
                             {{ scope.row.pci != null ? scope.row.pci : '-' }}
                         </template>
@@ -461,7 +460,7 @@ export default {
         }
 
         .detail-label {
-            width: 80px;
+            width: 100px;
             color: #909399;
             flex-shrink: 0;
         }

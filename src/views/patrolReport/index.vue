@@ -73,10 +73,25 @@ export default {
       return getMonitorRecordList({ pageNum: 1, pageSize: 999, aiCheckStatus: 1 })
         .then(res => {
           this.recordOptions = (res && res.records) || [];
+          if (!this.recordId && this.recordOptions.length > 0) {
+            this.recordId = this.getLatestRecordId(this.recordOptions);
+            this.selectedRecordId = this.recordId;
+          }
         })
         .catch(err => {
           console.error("加载检测记录列表失败:", err);
         });
+    },
+
+    // 获取最新记录 ID
+    getLatestRecordId(records) {
+      if (!records || records.length === 0) return null;
+      const sorted = [...records].sort((a, b) => {
+        const tA = a.uploadTime ? new Date(a.uploadTime).getTime() : 0;
+        const tB = b.uploadTime ? new Date(b.uploadTime).getTime() : 0;
+        return tB - tA;
+      });
+      return sorted[0] ? String(sorted[0].id) : null;
     },
 
     // 选择器切换检测记录
@@ -98,7 +113,8 @@ export default {
       if (!id) {
         this.loading = false;
         this.markdownContent = "";
-        this.$message.error("缺少检测记录 ID");
+        const msg = this.recordOptions.length === 0 ? "暂无检测记录" : "缺少检测记录 ID";
+        this.$message.error(msg);
         return;
       }
 
@@ -159,23 +175,26 @@ export default {
         const pdf = new jsPDF("p", "mm", "a4");
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = pageWidth;
+        const margin = 15; // 左右边距 15mm
+        const imgWidth = pageWidth - 2 * margin;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
         let heightLeft = imgHeight;
         let position = 0;
 
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
 
         while (heightLeft > 0) {
           position = heightLeft - imgHeight;
           pdf.addPage();
-          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+          pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
           heightLeft -= pageHeight;
         }
 
-        pdf.save("智能巡检分析报告.pdf");
+        const record = this.recordOptions.find(item => String(item.id) === String(this.recordId));
+        const fileName = record && record.uploadName ? `${record.uploadName}.pdf` : "智能巡检分析报告.pdf";
+        pdf.save(fileName);
       } catch (err) {
         console.error("导出 PDF 失败:", err);
         this.$message.error("导出 PDF 失败");
