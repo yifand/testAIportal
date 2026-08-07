@@ -37,6 +37,12 @@
                                 <el-menu-item index="4-2">工具链调用</el-menu-item>
                                 <!-- <el-menu-item index="4-3">分析报告</el-menu-item> -->
                             </el-submenu>
+                            <el-menu-item index="5">
+                                <template slot="title">
+                                    <i class="el-icon-picture-outline"></i>
+                                    <span>遥感监测</span>
+                                </template>
+                            </el-menu-item>
 
 
                         </el-menu>
@@ -157,6 +163,8 @@ export default {
                 this.activeIndex = "4-1";
             } else if (path.indexOf("/analysis/qa") > -1) {
                 this.activeIndex = "4-2";
+            } else if (path.indexOf("/remote/monitoring") > -1) {
+                this.activeIndex = "5";
             } else {
                 this.activeIndex = "";
             }
@@ -205,6 +213,8 @@ export default {
                 this.$router.push("/analysis/knowledgeQa");
             } else if (key == "4-2") {
                 this.$router.push("/analysis/qa");
+            } else if (key == "5") {
+                this.$router.push("/remote/monitoring");
             }
         },
         gotoUserInfo() {

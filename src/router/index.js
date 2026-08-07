@@ -125,6 +125,11 @@ const routes = [
         component: () => import("../views/remoteSensing/visualization.vue"),
       },
       {
+        path: "remote/monitoring",
+        name: "remoteSensingMonitoring",
+        component: () => import("../views/remoteSensing/monitoring.vue"),
+      },
+      {
         path: "remote/change-compare",
         name: "remoteChangeCompare",
         component: () => import("../views/remoteSensing/changeCompare.vue"),

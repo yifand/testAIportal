@@ -49,9 +49,9 @@
                 <i class="el-icon-delete"></i>
                 清空对话
               </el-button>
-              <el-button size="small" @click="loadHistory" :disabled="isGenerating">
+              <el-button size="small" @click="loadMoreHistory" :disabled="isGenerating || !hasMoreHistory">
                 <i class="el-icon-refresh"></i>
-                加载历史
+                {{ hasMoreHistory ? '加载历史' : '已加载全部' }}
               </el-button>
             </div>
           </div>
@@ -194,6 +194,7 @@ export default {
         '平台相关功能介绍？',
         '平台使用了哪些关键技术？',
       ],
+      hasMoreHistory: true,
       hisQueryParams: {
         pageNo: 1,
         pageSize: 50,
@@ -209,8 +210,6 @@ export default {
   },
   created() {
     this.initData();
-    this.loadHistory();
-
   },
 
   methods: {
@@ -260,6 +259,63 @@ export default {
         }
       } catch (err) {
         console.error('加载历史对话失败', err);
+        this.$message.error('加载历史失败，请重试');
+      }
+    },
+    async loadMoreHistory() {
+      if (!this.hasMoreHistory || this.isGenerating) return;
+      // 当前 pageNo 就是本次要请求的页码，请求完后再 +1
+      const currentPage = this.hisQueryParams.pageNo;
+      this.hisQueryParams.pageNo++;
+      try {
+        const res = await getPresetQuestions({ ...this.hisQueryParams, pageNo: currentPage });
+        if (res.code === 200 && res.data) {
+          const recordList = Array.isArray(res.data) ? res.data : (res.data.records || []);
+          if (!recordList || recordList.length === 0) {
+            this.hasMoreHistory = false;
+            this.hisQueryParams.pageNo = currentPage;
+            this.$message.info('没有更多历史记录了');
+            return;
+          }
+          const sortedList = [...recordList].reverse();
+          const newMessages = [];
+          sortedList.forEach(item => {
+            const msgTime = item.createTime
+              ? this.formatTime(new Date(item.createTime))
+              : this.formatTime(new Date());
+            if (item.req) {
+              newMessages.push({
+                type: 'user',
+                content: item.req,
+                time: msgTime
+              });
+            }
+            if (item.answer) {
+              newMessages.push({
+                type: 'assistant',
+                content: item.answer,
+                time: msgTime,
+                think: item.thought || '',
+                thinkExpanded: false
+              });
+            }
+          });
+          if (newMessages.length === 0) {
+            this.hasMoreHistory = false;
+            this.hisQueryParams.pageNo = currentPage;
+          } else {
+            this.messages = [...newMessages, ...this.messages];
+            if (recordList.length < this.hisQueryParams.pageSize) {
+              this.hasMoreHistory = false;
+            }
+          }
+        } else {
+          this.hasMoreHistory = false;
+          this.hisQueryParams.pageNo = currentPage;
+        }
+      } catch (err) {
+        this.hisQueryParams.pageNo = currentPage;
+        console.error('加载更多历史失败', err);
         this.$message.error('加载历史失败，请重试');
       }
     },
@@ -689,6 +745,8 @@ export default {
           await deleteHis(this.hisQueryParams);
           this.messages = [];
           this.conversationId = '';
+          this.hisQueryParams.pageNo = 1;
+          this.hasMoreHistory = true;
           this.$message.success('对话记录已清空，已开启新会话');
         } catch (err) {
           console.error('删除历史失败', err);
